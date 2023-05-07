@@ -55,6 +55,11 @@ class Solana_Simplified():
         token_balance = spl_client.get_balance(token_address_publickey).value.ui_amount_string
         return token_balance
 
+    def approve_spl_token_transaction(spl_client: Token, source_token_address_publickey: Pubkey, delegate_token_address_publickey: Pubkey, owner_token_address_publickey: Pubkey, amount: float):
+        amount = int(amount*1000000000)
+        transaction_signature = spl_client.approve(source_token_address_publickey, delegate_token_address_publickey, owner_token_address_publickey, amount, multi_signers=None, opts=None, recent_blockhash=None).value
+        return transaction_signature
+
     def send_spl_token(spl_client: Token, source_token_address_publickey: Pubkey, destination_token_address_publickey: Pubkey, source_main_wallet_keypair: Keypair, amount: float):
         transaction_signature = spl_client.transfer(source=source_token_address_publickey, dest=destination_token_address_publickey, owner=source_main_wallet_keypair, amount=int(float(amount)*1000000000), multi_signers=None, opts=None, recent_blockhash=None).value
         return str(transaction_signature)
@@ -77,6 +82,10 @@ class Solana_Simplified():
             return False
         else:
             return True
+        
+    def check_approval_transaction(solana_client: Client, transaction_signature: Signature):
+        transaction_complete = solana_client.get_transaction(tx_sig=transaction_signature, encoding='json', commitment=None, max_supported_transaction_version=None)
+        return transaction_complete
 
     def check_token_transaction(solana_client: Client, transaction_signature: Signature):
         transaction_complete = solana_client.get_transaction(tx_sig=transaction_signature, encoding='json', commitment=None, max_supported_transaction_version=None)
@@ -90,3 +99,43 @@ class Solana_Simplified():
     def check_solana_transaction_direct(solana_client: Client, transaction_signature: Signature):
         transaction_status = solana_client.confirm_transaction(tx_sig=transaction_signature, commitment=None, sleep_seconds=0.5, last_valid_block_height=None).value[0].confirmation_status
         return transaction_status
+    
+    def get_transaction_signature_list(solana_client: Client, owner_account: Pubkey):
+        signatures = solana_client.get_signatures_for_address(owner_account, before=None, until=None, limit=None, commitment=None).value
+        signatures_list = [signature.signature for signature in signatures]
+        return signatures_list
+    
+    def get_transaction_details_from_signature(solana_client: Client, transaction_signature: Signature):
+        transaction_complete = solana_client.get_transaction(tx_sig=transaction_signature, encoding='json', commitment=None, max_supported_transaction_version=0)
+        return transaction_complete
+    
+    def check_transaction_status(solana_client: Client, sender_account: Pubkey, transaction_complete):
+        try:
+            prior_balance = transaction_complete.value.transaction.meta.post_token_balances[0].ui_token_amount.ui_amount_string
+            initial_balance = transaction_complete.value.transaction.meta.pre_token_balances[0].ui_token_amount.ui_amount_string
+            token_account = transaction_complete.value.transaction.transaction.message.account_keys[1]
+            balance_change = abs(float(prior_balance) - float(initial_balance))
+            balance_details = [balance_change, "token"]
+            if prior_balance == initial_balance:
+                return False
+            else:
+                if sender_account == token_account:
+                    return balance_details
+                else:
+                    return False
+        except:
+            try:
+                prior_balance = transaction_complete.value.transaction.meta.post_balances[0]
+                initial_balance = transaction_complete.value.transaction.meta.pre_balances[0]
+                solana_account = transaction_complete.value.transaction.transaction.message.account_keys[0]
+                balance_change = abs(float(prior_balance) - float(initial_balance)) / float(1000000000)
+                balance_details = [balance_change, "solana"]
+                if prior_balance == initial_balance:
+                    return False
+                else:
+                    if sender_account == solana_account:
+                        return balance_details
+                    else:
+                        return False
+            except:
+                return False
