@@ -5,8 +5,8 @@ import time
 private_key = "<sender_account_private_key>"
 main_wallet = "<sender_account_wallet_address>"
 test_wallet = "<recipient_account_wallet_address>"
-program_id = "<token_program_id>" #eg: https://solscan.io/token/FpekncBMe3Vsi1LMkh6zbNq8pdM6xEbNiFsJBRcPbMDQ | FpekncBMe3Vsi1LMkh6zbNq8pdM6xEbNiFsJBRcPbMDQ
-mint = "<token_address>" #eg: https://solscan.io/account/TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA | TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+program_id = "<token_program_id>" # eg: https://solscan.io/account/TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA | TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+mint = "<token_address>" # eg: https://solscan.io/token/FpekncBMe3Vsi1LMkh6zbNq8pdM6xEbNiFsJBRcPbMDQ | FpekncBMe3Vsi1LMkh6zbNq8pdM6xEbNiFsJBRcPbMDQ
 source_main_wallet_keypair = Solana_Simplified.set_source_main_wallet_keypair(private_key)
 sender_pubkey = Solana_Simplified.set_main_wallet_publickey(main_wallet)
 destination_pubkey = Solana_Simplified.set_main_wallet_publickey(test_wallet)
